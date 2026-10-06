@@ -18,26 +18,9 @@ survey/
     └── Code.gs             ← backend Google Sheets
 ```
 
----
+## 🔗 BƯỚC 1 — TẠO BACKEND GOOGLE SHEETS
 
-## 🚀 BƯỚC 1 — CHẠY THỬ LOCAL
-
-```bash
-cd "C:/Users/ntduy/Downloads/SafeKid-Prototype"
-python -m http.server 8787
-```
-
-Mở: **http://127.0.0.1:8787/survey/index.html**
-
-> ⚠️ **Không mở trực tiếp bằng `file://`** — sẽ bị chặn CORS khi submit.
-
-Ở chế độ này form chạy **demo**: dữ liệu lưu vào `localStorage`, không gửi đi đâu.
-
----
-
-## 🔗 BƯỚC 2 — TẠO BACKEND GOOGLE SHEETS
-
-### 2.1. Tạo Sheet
+### 1.1. Tạo Sheet
 1. Vào [sheets.new](https://sheets.new) → đặt tên **`SafeKid Survey Data`**
 2. Copy **SPREADSHEET_ID** từ URL:
    ```
@@ -45,7 +28,7 @@ Mở: **http://127.0.0.1:8787/survey/index.html**
                                     └─ copy đoạn này ─┘
    ```
 
-### 2.2. Mở Apps Script
+### 1.2. Mở Apps Script
 - Trong Sheet: menu **Extensions → Apps Script**
 - Xoá hết code mẫu
 - Dán toàn bộ nội dung `apps-script/Code.gs`
@@ -54,13 +37,13 @@ Mở: **http://127.0.0.1:8787/survey/index.html**
   const SPREADSHEET_ID = '1AbC...XYZ';   // ← dán ID vừa copy
   ```
 
-### 2.3. Tạo header (chạy 1 lần)
+### 1.3. Tạo header (chạy 1 lần)
 - Trong Apps Script, chọn hàm **`setupSheet`** ở dropdown
 - Bấm **▶ Run**
 - Cấp quyền khi được hỏi (Advanced → Go to project → Allow)
 - Kiểm tra Sheet: đã có 76 cột header tiếng Việt
 
-### 2.4. Deploy
+### 1.4. Deploy
 - Bấm **Deploy → New deployment**
 - Chọn loại: **Web app**
 - Cấu hình:
@@ -71,7 +54,7 @@ Mở: **http://127.0.0.1:8787/survey/index.html**
   | Who has access | **Anyone** |
 - Bấm **Deploy** → copy **Web app URL** (kết thúc bằng `/exec`)
 
-### 2.5. Kiểm tra backend
+### 1.5. Kiểm tra backend
 Dán URL `/exec` vào trình duyệt. Phải thấy:
 ```json
 {"status":"ok","service":"SafeKid Survey Backend","version":"1.0","responses":0,"columns":76}
@@ -79,7 +62,7 @@ Dán URL `/exec` vào trình duyệt. Phải thấy:
 
 ---
 
-## ⚙️ BƯỚC 3 — NỐI FORM VỚI BACKEND
+## ⚙️ BƯỚC 2 — NỐI FORM VỚI BACKEND
 
 Mở `survey.js`, sửa dòng đầu:
 ```javascript
@@ -89,7 +72,7 @@ Lưu file → reload form → submit thử 1 lần → kiểm tra Sheet có dòn
 
 ---
 
-## 🌐 BƯỚC 4 — DEPLOY PUBLIC
+## 🌐 BƯỚC 3 — DEPLOY PUBLIC
 
 ### Cách A — GitHub Pages (khuyến nghị)
 1. Tạo repo mới, ví dụ `safekid-survey`
