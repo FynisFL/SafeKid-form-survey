@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07080d">
+<title>Khảo sát SafeKid — Nghiên cứu nhu cầu thiết bị an toàn cho trẻ em</title>
+<meta name="description" content="Khảo sát nghiên cứu nhu cầu thiết bị đeo an toàn cho trẻ em 3-10 tuổi. Nhóm DigiBabi - DBC 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="survey.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ══════ HEADER ══════ -->
+  <header class="top" id="top">
+    <div class="brand">
+      <div class="brand-mark">🛡️</div>
+      <div>
+        <div class="brand-txt">SafeKid</div>
+        <div class="brand-sub">DigiBabi · DBC 2026</div>
+      </div>
+    </div>
+
+    <h1 class="title">Khảo sát nhu cầu thiết bị an toàn cho trẻ em</h1>
+    <p class="lede">Nghiên cứu độc lập của nhóm sinh viên DigiBabi. Chúng tôi đang tìm hiểu nhu cầu thật của phụ huynh có con 3–10 tuổi — không nhằm bán hàng hay quảng cáo.</p>
+
+    <div class="meta-row">
+      <span class="chip"><i></i>Ẩn danh</span>
+      <span class="chip">⏱ <b>8–12 phút</b></span>
+      <span class="chip">📋 <b>12</b> phần</span>
+      <span class="chip">🔒 Không thu thập dữ liệu trẻ</span>
+    </div>
+
+    <div class="note">
+      <b>Trước khi bắt đầu:</b>
+      <ul>
+        <li>Không có câu trả lời đúng hay sai — chúng tôi cần ý kiến thật của anh/chị.</li>
+        <li>Kết quả chỉ dùng cho mục đích nghiên cứu học thuật.</li>
+        <li>Anh/chị có thể dừng bất cứ lúc nào.</li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- ══════ PROGRESS ══════ -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-top">
+      <span class="progress-label" id="progressLabel">Phần 1 / 12</span>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <!-- ══════ SECTIONS (rendered) ══════ -->
+  <main id="sections"></main>
+
+  <!-- ══════ ERROR ══════ -->
+  <div class="err" id="err"></div>
+
+  <!-- ══════ NAV ══════ -->
+  <div class="nav" id="nav">
+    <button class="btn btn-ghost" id="btnPrev">‹ Quay lại</button>
+    <span class="spacer"></span>
+    <button class="btn btn-primary" id="btnNext">Tiếp tục ›</button>
+  </div>
+
+  <!-- ══════ SCREENER STOP ══════ -->
+  <div class="stop" id="stop">
+    <div class="stop-ico">🙏</div>
+    <h2>Cảm ơn anh/chị</h2>
+    <p>Khảo sát này dành cho phụ huynh có con trong độ tuổi 3–10.</p>
+    <p>Hiện tại anh/chị chưa thuộc nhóm khảo sát, nhưng chúng tôi rất cảm ơn anh/chị đã dành thời gian.</p>
+  </div>
+
+  <!-- ══════ DONE ══════ -->
+  <div class="done" id="done">
+    <div class="done-ring">✓</div>
+    <h2>Đã gửi thành công!</h2>
+    <p>Cảm ơn anh/chị đã dành thời gian cho khảo sát của nhóm DigiBabi.</p>
+    <p>Ý kiến của anh/chị giúp chúng tôi hiểu đúng nhu cầu thật của phụ huynh.</p>
+    <div class="done-code" id="doneCode">Mã phản hồi: —</div>
+  </div>
+
+  <footer class="foot">
+    <p>Nhóm DigiBabi · Cuộc thi Sinh viên Kinh doanh Số 2026 · Nội dung 3</p>
+    <p style="margin-top:6px">Mọi dữ liệu được xử lý ẩn danh và chỉ dùng cho mục đích nghiên cứu.</p>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="survey-schema.js"></script>
+<script src="survey.js"></script>
+</body>
+</html>
