@@ -43,6 +43,13 @@
         <li>Anh/chị có thể dừng bất cứ lúc nào.</li>
       </ul>
     </div>
+
+    <!-- Cảnh báo demo — tự hiện khi ENDPOINT rỗng -->
+    <div class="demo-warn" id="demoWarn" style="display:none">
+      <b>⚠️ CHẾ ĐỘ THỬ NGHIỆM</b>
+      <p>Form chưa được nối với máy chủ. Dữ liệu sẽ <b>không</b> được gửi đi đâu cả.</p>
+      <p>Nếu anh/chị là thành viên nhóm: mở <code>survey.js</code> và điền <code>ENDPOINT</code>.</p>
+    </div>
   </header>
 
   <!-- ══════ PROGRESS ══════ -->
@@ -78,9 +85,9 @@
   <!-- ══════ DONE ══════ -->
   <div class="done" id="done">
     <div class="done-ring">✓</div>
-    <h2>Đã gửi thành công!</h2>
+    <h2 id="doneTitle">Đã gửi thành công!</h2>
+    <p id="doneNote">Phản hồi của anh/chị đã được ghi nhận.</p>
     <p>Cảm ơn anh/chị đã dành thời gian cho khảo sát của nhóm DigiBabi.</p>
-    <p>Ý kiến của anh/chị giúp chúng tôi hiểu đúng nhu cầu thật của phụ huynh.</p>
     <div class="done-code" id="doneCode">Mã phản hồi: —</div>
   </div>
 

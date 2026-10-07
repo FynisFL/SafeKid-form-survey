@@ -17,6 +17,8 @@ function boot() {
   w.scrollTo = () => {};
   w.HTMLElement.prototype.scrollIntoView = () => {};
   w.localStorage.clear();
+  /* jsdom không có fetch — mock để test luồng submit khi đã cấu hình ENDPOINT */
+  w.fetch = () => Promise.resolve({ type: 'opaque', status: 0 });
   w.eval(schemaSrc);
   w.eval(appSrc);
   return { w, $: s => w.document.querySelector(s), $$: s => [...w.document.querySelectorAll(s)] };
@@ -156,9 +158,10 @@ function boot() {
   w.submit();
   setTimeout(() => {
     t('Submit hiện màn hình cảm ơn', $('#done').classList.contains('is-on'));
-    const store = JSON.parse(w.localStorage.getItem('safekid_survey') || '[]');
-    t('Payload lưu localStorage', store.length === 1, `${store.length}`);
-    t('Payload có >= 40 khóa', Object.keys(store[0] || {}).length >= 40, `${Object.keys(store[0] || {}).length}`);
+    const sent = JSON.parse(w.localStorage.getItem('safekid_sent') || '[]');
+    t('Payload gửi được lưu bản sao', sent.length === 1, `${sent.length}`);
+    t('Payload có >= 40 khóa', Object.keys((sent[0] || {}).payload || {}).length >= 40,
+      `${Object.keys((sent[0] || {}).payload || {}).length}`);
 
     const pass = results.filter(r => r.pass).length;
     console.log('\n═══ TEST FORM 20 CÂU (jsdom) ═══');

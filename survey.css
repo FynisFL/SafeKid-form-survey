@@ -370,3 +370,17 @@ textarea{min-height:92px;line-height:1.6}
   .progress-pct{font-size:17px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ═══════════ CẢNH BÁO DEMO MODE ═══════════ */
+.demo-warn{
+  margin:0 0 18px;padding:16px 18px;border-radius:14px;
+  background:rgba(255,95,109,.12);border:1px solid rgba(255,95,109,.42);
+  color:#ffb3ba;font-size:13.5px;line-height:1.55;
+}
+.demo-warn b{display:block;margin-bottom:6px;color:#ff8a95;font-size:14px}
+.demo-warn p{margin:0 0 6px}
+.demo-warn p:last-child{margin-bottom:0}
+.demo-warn code{
+  background:rgba(0,0,0,.3);padding:2px 6px;border-radius:5px;
+  font-family:ui-monospace,monospace;font-size:12.5px;color:#ffd7db;
+}

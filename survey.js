@@ -7,7 +7,7 @@
    Điền URL Google Apps Script Web App vào đây sau khi deploy.
    Để trống = chạy chế độ demo (lưu localStorage, không gửi đi).
    ────────────────────────────────────────────────────────── */
-const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyd7Bae2_9K67ktiyayzbMVVU5ykwoa4nsR-ahJwbI8DGkzOHCGUnMymvWuTHDl9HO8/exec';   // ví dụ: 'https://script.google.com/macros/s/AKfy.../exec'
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyd7Bae2_9K67ktiyayzbMVVU5ykwoa4nsR-ahJwbI8DGkzOHCGUnMymvWuTHDl9HO8/exec';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -439,25 +439,35 @@ async function submit() {
   const btn = $('#btnSubmit');
   if (btn) { btn.disabled = true; btn.textContent = 'Đang gửi...'; }
 
+  /* ⚠️ Không có ENDPOINT -> chế độ demo, phải NÓI RÕ cho người dùng biết */
+  if (!ENDPOINT) {
+    const store = JSON.parse(localStorage.getItem('safekid_survey') || '[]');
+    store.push(payload);
+    localStorage.setItem('safekid_survey', JSON.stringify(store));
+    if (btn) { btn.disabled = false; btn.textContent = 'Gửi khảo sát ✓'; }
+    console.warn('[SafeKid] DEMO MODE — dữ liệu chỉ lưu localStorage, CHƯA gửi lên Google Sheet. '
+               + 'Điền ENDPOINT trong survey.js để bật gửi thật.');
+    showDone(payload, false);
+    return;
+  }
+
   try {
-    if (ENDPOINT) {
-      await fetch(ENDPOINT, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-    } else {
-      /* chế độ demo — lưu localStorage */
-      const store = JSON.parse(localStorage.getItem('safekid_survey') || '[]');
-      store.push(payload);
-      localStorage.setItem('safekid_survey', JSON.stringify(store));
-    }
-    showDone(payload);
+    await fetch(ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    /* no-cors -> không đọc được response; lưu bản sao để đối chiếu nếu cần */
+    const store = JSON.parse(localStorage.getItem('safekid_sent') || '[]');
+    store.push({ sent_at: new Date().toISOString(), payload });
+    localStorage.setItem('safekid_sent', JSON.stringify(store));
+
+    showDone(payload, true);
   } catch (err) {
     if (btn) { btn.disabled = false; btn.textContent = 'Gửi khảo sát ✓'; }
-    toast('Có lỗi khi gửi. Vui lòng thử lại.');
-    console.error(err);
+    toast('Không gửi được. Kiểm tra kết nối mạng rồi thử lại.');
+    console.error('[SafeKid] Gửi thất bại:', err);
   }
 }
 
@@ -484,13 +494,24 @@ function buildPayload() {
   return out;
 }
 
-function showDone(payload) {
+function showDone(payload, sentToBackend) {
   state.submitted = true;
   $('#progressWrap').style.display = 'none';
   $$('.section').forEach(s => s.classList.remove('is-active'));
   $('#nav').style.display = 'none';
   $('#err').classList.remove('is-on');
-  $('#doneCode').textContent = 'Mã phản hồi: ' + payload.timestamp.slice(0, 19).replace('T', ' ');
+
+  const code = payload.timestamp.slice(0, 19).replace('T', ' ');
+
+  if (sentToBackend) {
+    $('#doneCode').textContent = 'Mã phản hồi: ' + code;
+    $('#doneNote').textContent = 'Phản hồi của anh/chị đã được ghi nhận.';
+  } else {
+    /* DEMO MODE — nói thẳng, không để người dùng tưởng đã gửi thành công */
+    $('#doneCode').textContent = 'Mã tạm: ' + code;
+    $('#doneNote').textContent = '⚠️ Chế độ thử nghiệm — dữ liệu CHƯA được gửi lên máy chủ.';
+  }
+
   $('#done').classList.add('is-on');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -506,6 +527,10 @@ function syncMeta() {
   if (timeEl && S.meta.estTime) timeEl.textContent = S.meta.estTime;
   if (secEl) secEl.textContent = S.sections.length;
   if (lbl) lbl.textContent = `Phần 1 / ${S.sections.length}`;
+
+  /* Cảnh báo nổi bật khi chưa nối backend */
+  const warn = $('#demoWarn');
+  if (warn) warn.style.display = ENDPOINT ? 'none' : 'block';
 }
 
 syncMeta();
