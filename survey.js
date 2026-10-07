@@ -7,7 +7,7 @@
    Điền URL Google Apps Script Web App vào đây sau khi deploy.
    Để trống = chạy chế độ demo (lưu localStorage, không gửi đi).
    ────────────────────────────────────────────────────────── */
-const ENDPOINT = '';   // ví dụ: 'https://script.google.com/macros/s/AKfy.../exec'
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyd7Bae2_9K67ktiyayzbMVVU5ykwoa4nsR-ahJwbI8DGkzOHCGUnMymvWuTHDl9HO8/exec';   // ví dụ: 'https://script.google.com/macros/s/AKfy.../exec'
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
