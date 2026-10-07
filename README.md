@@ -23,11 +23,6 @@ survey/
 
 ## 🚀 BƯỚC 1 — CHẠY THỬ LOCAL
 
-```bash
-cd "C:/Users/ntduy/Downloads/SafeKid-Prototype"
-python -m http.server 8787
-```
-
 Mở: **http://127.0.0.1:8787/survey/index.html**
 
 > ⚠️ **Không mở trực tiếp bằng `file://`** — sẽ bị chặn CORS khi submit.
@@ -72,11 +67,11 @@ Mở: **http://127.0.0.1:8787/survey/index.html**
 - Bấm **Deploy → New deployment**
 - Chọn loại: **Web app**
 - Cấu hình:
-  | Trường | Giá trị |
-  |---|---|
-  | Description | SafeKid Survey v1 |
-  | Execute as | **Me** |
-  | Who has access | **Anyone** |
+  |      Trường     |      Giá trị      |
+  |-----------------|-------------------|
+  |   Description   | SafeKid Survey v1 |
+  |   Execute as    |       **Me**      |
+  |  Who has access |     **Anyone**    |
 - Bấm **Deploy** → copy **Web app URL** (kết thúc bằng `/exec`)
 
 ### 2.5. Kiểm tra backend
