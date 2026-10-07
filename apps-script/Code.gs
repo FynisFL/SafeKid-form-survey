@@ -1,13 +1,15 @@
 /**
  * ══════════════════════════════════════════════════════════
- *  SAFEKID SURVEY — GOOGLE APPS SCRIPT BACKEND
+ *  SAFEKID SURVEY — GOOGLE APPS SCRIPT BACKEND  (v3 · 20 câu)
  *  Nhận dữ liệu từ web form → ghi vào Google Sheet
  * ══════════════════════════════════════════════════════════
  *
  *  CÁCH DÙNG:
  *  1. Tạo Google Sheet mới, đặt tên: "SafeKid Survey Data"
  *  2. Menu Extensions → Apps Script
- *  3. Xoá code mẫu, dán toàn bộ file này vào
+ *  3. Tạo 2 file trong Apps Script:
+ *     - Code.gs     → dán nội dung file này
+ *     - columns.gs  → dán nội dung file survey/apps-script/columns.gs
  *  4. Sửa SPREADSHEET_ID bên dưới (lấy từ URL sheet)
  *  5. Deploy → New deployment → Web app
  *     - Execute as: Me
@@ -21,56 +23,27 @@ const SPREADSHEET_ID = '';        // để trống = dùng sheet chứa script n
 const SHEET_NAME     = 'Responses';
 const LOG_SHEET_NAME = 'Log';
 
-/* ══════ CỘT — khớp đúng thứ tự survey-schema.js ══════ */
-const COLUMNS = [
-  'timestamp', 'duration_sec', 'version', 'source',
-  /* S1 */ 'Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8',
-  /* S2 */ 'Q9','Q10','Q11','Q12','Q13','Q14',
-  /* S3 */ 'Q15','Q16a','Q16b','Q17','Q18',
-  /* S4 */ 'Q19_gps','Q19_sos','Q19_zone','Q19_call','Q19_remind','Q19_habit','Q19_app','Q19_ai','Q19_passport','Q19_tradein',
-           'Q20','Q21',
-  /* S5 */ 'Q22','Q23','Q24','Q25',
-  /* S6 */ 'Q26','Q27','Q28','Q29','Q30','Q31','Q32','Q33',
-  /* S7 */ 'Q34','Q35','Q36','Q37',
-  /* S8 */ 'Q38','Q39','Q40','Q41','Q42',
-  /* S9 */ 'Q43','Q44','Q45','Q46','Q47',
-  /* S10 */ 'Q48','Q49','Q50','Q51',
-  /* S11 */ 'Q52','Q53','Q54','Q55',
-  /* S12 */ 'Q56','Q57','Q58','Q59','Q60'
-];
-
-/* Nhãn tiếng Việt cho header (dễ đọc khi phân tích) */
-const HEADERS_VI = {
-  timestamp: 'Thời gian', duration_sec: 'Thời lượng (giây)', version: 'Phiên bản', source: 'Nguồn',
-  Q1: 'S1-Tuổi con', Q2: 'S1-Vai trò', Q3: 'S1-Tuổi PH', Q4: 'S1-Số con', Q5: 'S1-Khu vực',
-  Q6: 'S1-Thu nhập', Q7: 'S1-Tình trạng đi học', Q8: 'S1-Thiết bị đang dùng',
-  Q9: 'S2-Mức lo lắng', Q10: 'S2-Tình huống lo nhất', Q11: 'S2-Lo smartphone sớm',
-  Q12: 'S2-Lo ngại cụ thể', Q13: 'S2-Cách liên lạc', Q14: 'S2-Hài lòng hiện tại',
-  Q15: 'S3-Kinh nghiệm smartwatch', Q16a: 'S3-Lý do mua', Q16b: 'S3-Chưa hài lòng',
-  Q17: 'S3-Lý do chưa mua', Q18: 'S3-Xếp hạng tiêu chí',
-  Q19_gps: 'S4-GPS', Q19_sos: 'S4-SOS', Q19_zone: 'S4-Safe Zone', Q19_call: 'S4-Gọi giới hạn',
-  Q19_remind: 'S4-Nhắc nhở', Q19_habit: 'S4-Habit/Reward', Q19_app: 'S4-Parent App',
-  Q19_ai: 'S4-S.F AI', Q19_passport: 'S4-Watch Passport', Q19_tradein: 'S4-Trade-in',
-  Q20: 'S4-Top 3 tính năng', Q21: 'S4-Trả thêm cho Habit',
-  Q22: 'S5-Hữu ích', Q23: 'S5-Hấp dẫn nhất', Q24: 'S5-Chưa thuyết phục', Q25: 'S5-Cân nhắc trước mua',
-  Q26: 'S6-Sẵn sàng máy cũ', Q27: 'S6-Điều tin tưởng', Q28: 'S6-Điều không tin',
-  Q29: 'S6-Data Wipe quan trọng', Q30: 'S6-Passport quan trọng', Q31: 'S6-Chênh lệch giá',
-  Q32: 'S6-Sẵn sàng Trade-in', Q33: 'S6-Hình thức Trade-in',
-  Q34: 'S7-Giá hợp lý', Q35: 'S7-Quá đắt', Q36: 'S7-Quá rẻ', Q37: 'S7-Thời điểm mua',
-  Q38: 'S8-Sẵn sàng trả phí', Q39: 'S8-Mức phí tháng', Q40: 'S8-Hình thức trả',
-  Q41: 'S8-Đáng trả tiền nhất', Q42: 'S8-Gói năm',
-  Q43: 'S9-Lo dữ liệu vị trí', Q44: 'S9-Lo ngại cụ thể', Q45: 'S9-Xoá dữ liệu quan trọng',
-  Q46: 'S9-Ưu tiên an toàn/privacy', Q47: 'S9-Muốn kiểm soát quyền',
-  Q48: 'S10-AI hữu ích', Q49: 'S10-AI tin tưởng', Q50: 'S10-Lo AI sai', Q51: 'S10-Khi cần người thật',
-  Q52: 'S11-PURCHASE INTENTION', Q53: 'S11-Lý do mua', Q54: 'S11-Lý do không mua', Q55: 'S11-NPS',
-  Q56: 'S12-Thay đổi gì', Q57: 'S12-Thiếu tính năng', Q58: 'S12-Lo lắng nhất',
-  Q59: 'S12-Mô tả SafeKid', Q60: 'S12-Liên hệ'
-};
-
 /* ══════ ENTRY POINTS ══════ */
 
-/** Nhận dữ liệu từ form */
+/**
+ * Nhận dữ liệu từ form.
+ *
+ * ⚠️ KHÔNG bấm Run hàm này trong Apps Script — sẽ báo lỗi
+ *    "Cannot read properties of undefined (reading 'postData')".
+ *    Hàm này chỉ chạy khi form gửi dữ liệu tới qua URL /exec.
+ *
+ *    Muốn kiểm tra backend: chạy hàm `setupSheet` hoặc `summary`.
+ */
 function doPost(e) {
+  /* Chạy tay trong editor -> e là undefined. Báo lỗi rõ ràng thay vì crash. */
+  if (!e || !e.postData) {
+    const msg = 'Hàm doPost() chỉ chạy khi form gửi dữ liệu tới. '
+              + 'Đừng bấm Run hàm này. Hãy chạy setupSheet để tạo header, '
+              + 'hoặc summary để xem thống kê.';
+    Logger.log(msg);
+    return json({ status: 'error', message: msg });
+  }
+
   try {
     const data = JSON.parse(e.postData.contents);
     const ss = getSpreadsheet();
@@ -83,7 +56,7 @@ function doPost(e) {
       return v;
     });
 
-    /* Thêm mã phản hồi + thời điểm nhận */
+    /* Mã phản hồi */
     row.push('R' + String(sheet.getLastRow()).padStart(4, '0'));
     sheet.appendRow(row);
 
@@ -102,7 +75,7 @@ function doGet(e) {
   return json({
     status: 'ok',
     service: 'SafeKid Survey Backend',
-    version: '1.0',
+    version: '3.0 (20 câu)',
     responses: count,
     columns: COLUMNS.length + 1,
     time: new Date().toISOString()
@@ -137,15 +110,14 @@ function writeHeaders(sheet) {
   headers.push('Mã phản hồi');
   sheet.appendRow(headers);
 
-  /* format header */
   const range = sheet.getRange(1, 1, 1, headers.length);
   range.setFontWeight('bold')
        .setBackground('#0b1220')
        .setFontColor('#00d4ff')
        .setVerticalAlignment('middle');
   sheet.setFrozenRows(1);
-  sheet.setRowHeight(1, 34);
-  sheet.setColumnWidths(1, headers.length, 130);
+  sheet.setRowHeight(1, 40);
+  sheet.setColumnWidths(1, headers.length, 120);
   sheet.setColumnWidth(1, 165);
   sheet.setColumnWidth(2, 110);
 }
@@ -155,7 +127,7 @@ function logError(err, e) {
     const ss = getSpreadsheet();
     const log = getOrCreateSheet(ss, LOG_SHEET_NAME, false);
     if (log.getLastRow() === 0) log.appendRow(['Thời gian', 'Lỗi', 'Payload']);
-    log.appendRow([new Date().toISOString(), String(err), e?.postData?.contents?.slice(0, 500) || '']);
+    log.appendRow([new Date().toISOString(), String(err), e && e.postData ? String(e.postData.contents).slice(0, 500) : '']);
   } catch (_) { /* im lặng */ }
 }
 
@@ -174,22 +146,162 @@ function setupSheet() {
   Logger.log('Sheet "%s" sẵn sàng. %s cột.', sheet.getName(), COLUMNS.length + 1);
 }
 
+/* ══════ CHẨN ĐOÁN — chạy hàm này nếu gặp trục trặc ══════ */
+
+/**
+ * Kiểm tra toàn bộ backend trong 1 lần chạy.
+ * Chọn hàm `diagnose` ở dropdown → bấm Run → xem Execution log.
+ */
+function diagnose() {
+  const lines = [];
+  const log = (s) => { lines.push(s); Logger.log(s); };
+
+  log('════════ CHẨN ĐOÁN SAFEKID BACKEND ════════');
+  log('');
+
+  /* 1. columns.gs */
+  try {
+    if (typeof COLUMNS === 'undefined') {
+      log('❌ File columns.gs CHƯA có hoặc chưa lưu');
+      log('   → Cột trái bấm ➕ cạnh "Files" → Script → đặt tên "columns" → dán nội dung columns.gs');
+      log('');
+      return;
+    }
+    log(`✅ columns.gs: ${COLUMNS.length} cột`);
+    const noHdr = COLUMNS.filter(c => !HEADERS_VI[c]);
+    if (noHdr.length) log(`   ⚠️  ${noHdr.length} cột thiếu header: ${noHdr.join(', ')}`);
+    else log('✅ HEADERS_VI: đủ nhãn cho mọi cột');
+  } catch (err) {
+    log('❌ Lỗi đọc columns.gs: ' + err);
+    return;
+  }
+  log('');
+
+  /* 2. Sheet */
+  let sheet;
+  try {
+    const ss = getSpreadsheet();
+    log(`✅ Kết nối được Sheet: "${ss.getName()}"`);
+    sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) {
+      log(`❌ Chưa có tab "${SHEET_NAME}"`);
+      log('   → Chạy hàm setupSheet để tạo');
+      log('');
+      return;
+    }
+    log(`✅ Tab "${SHEET_NAME}" tồn tại`);
+  } catch (err) {
+    log('❌ Không truy cập được Sheet: ' + err);
+    log('   → Kiểm tra SPREADSHEET_ID trong Code.gs');
+    return;
+  }
+  log('');
+
+  /* 3. Header */
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  if (lastRow === 0) {
+    log('❌ Sheet trống — chưa có header');
+    log('   → Chạy hàm setupSheet');
+    return;
+  }
+  log(`✅ Header: ${lastCol} cột (cần ${COLUMNS.length + 1})`);
+  if (lastCol !== COLUMNS.length + 1) {
+    log(`   ⚠️  Số cột KHÔNG khớp! Xoá tab Responses rồi chạy lại setupSheet.`);
+  }
+  const hdr = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  log(`   Cột đầu: "${hdr[0]}" · Cột cuối: "${hdr[lastCol - 1]}"`);
+  log('');
+
+  /* 4. Dữ liệu */
+  const n = Math.max(0, lastRow - 1);
+  log(`✅ Số phản hồi hiện có: ${n}`);
+  log('');
+
+  /* 5. Trạng thái deploy */
+  log('📌 NHẮC LẠI — để form gửi được dữ liệu:');
+  log('   1. Deploy → New deployment → Web app');
+  log('   2. Execute as: Me');
+  log('   3. Who has access: Anyone   ← BẮT BUỘC');
+  log('   4. URL phải kết thúc bằng /exec (không phải /dev)');
+  log('');
+  log('════════ KẾT THÚC ════════');
+}
+
+/* ══════ TEST & THỐNG KÊ ══════ */
+
+/**
+ * Giả lập một lượt gửi form để kiểm tra doPost.
+ * Chạy hàm này nếu muốn thử backend mà không cần mở form.
+ * Dòng thử sẽ được ghi vào Sheet với nhãn [TEST].
+ */
+function testDoPost() {
+  const fake = {};
+  COLUMNS.forEach(c => { fake[c] = ''; });
+  fake.timestamp = new Date().toISOString();
+  fake.duration_sec = 0;
+  fake.version = 'TEST';
+  fake.source = '[TEST] chạy từ Apps Script';
+  fake.Q19 = '4';
+  fake.Q13_wipe = '5';
+  fake.Q11_sos = '5';
+
+  const res = doPost({ postData: { contents: JSON.stringify(fake) } });
+  const out = JSON.parse(res.getContent());
+  Logger.log('Kết quả testDoPost: %s', JSON.stringify(out));
+  if (out.status === 'success') {
+    Logger.log('✅ Backend hoạt động. Đã ghi 1 dòng thử vào Sheet (nhớ xoá dòng đó sau).');
+  } else {
+    Logger.log('❌ Backend lỗi: %s', out.message);
+  }
+  return out;
+}
+
 /** Xem nhanh thống kê */
 function summary() {
   const sheet = getOrCreateSheet(getSpreadsheet(), SHEET_NAME, true);
   const n = Math.max(0, sheet.getLastRow() - 1);
-  const rows = n ? sheet.getRange(2, 1, n, COLUMNS.length).getValues() : [];
   Logger.log('Tổng phản hồi: %s', n);
   if (!n) return;
 
-  /* đếm purchase intention Q52 (cột index) */
-  const iQ52 = COLUMNS.indexOf('Q52');
-  const dist = {};
-  rows.forEach(r => { const v = r[iQ52]; dist[v] = (dist[v] || 0) + 1; });
-  Logger.log('Phân bố Purchase Intention (Q52): %s', JSON.stringify(dist));
+  const rows = sheet.getRange(2, 1, n, COLUMNS.length).getValues();
 
-  const iQ34 = COLUMNS.indexOf('Q34');
-  const dist34 = {};
-  rows.forEach(r => { const v = r[iQ34]; dist34[v] = (dist34[v] || 0) + 1; });
-  Logger.log('Phân bố WTP hardware (Q34): %s', JSON.stringify(dist34));
+  function dist(colName, label) {
+    const i = COLUMNS.indexOf(colName);
+    if (i < 0) return;
+    const d = {};
+    rows.forEach(r => { const v = r[i]; d[v] = (d[v] || 0) + 1; });
+    Logger.log('%s: %s', label, JSON.stringify(d));
+  }
+
+  dist('Q19', 'Purchase Intention (Q19) — KPI chính');
+  dist('Q16', 'WTP hardware (Q16)');
+  dist('Q17', 'Phí Premium (Q17)');
+  dist('Q14', 'Chênh lệch giá máy cũ (Q14)');
+
+  function avgOf(keys, labels) {
+    return keys.map((k, idx) => {
+      const i = COLUMNS.indexOf(k);
+      if (i < 0) return null;
+      let sum = 0, cnt = 0;
+      rows.forEach(r => { const v = Number(r[i]); if (!isNaN(v) && v > 0) { sum += v; cnt++; } });
+      return { label: labels[idx], avg: cnt ? +(sum / cnt).toFixed(2) : 0 };
+    }).filter(Boolean);
+  }
+
+  /* Ma trận Q13 — bằng chứng Passport / Data Wipe */
+  const q13 = avgOf(
+    ['Q13_condition','Q13_repair','Q13_warranty','Q13_wipe','Q13_age','Q13_origin'],
+    ['Tình trạng KT','Lịch sử sửa chữa','Còn bảo hành','Đã xóa dữ liệu','Đã dùng bao lâu','Nguồn gốc']
+  ).sort((a, b) => b.avg - a.avg);
+  Logger.log('Xếp hạng thông tin máy cũ (Q13) — bằng chứng Passport/Data Wipe:');
+  q13.forEach((a, i) => Logger.log('   %s. %s: %s', i + 1, a.label, a.avg));
+
+  /* Ma trận Q11 — chốt MVP */
+  const q11 = avgOf(
+    ['Q11_gps','Q11_sos','Q11_zone','Q11_call','Q11_habit','Q11_app','Q11_ai','Q11_passport'],
+    ['GPS','SOS','Safe Zone','Gọi giới hạn','Habit/Reward','Parent App','S.F AI','Watch Passport']
+  ).sort((a, b) => b.avg - a.avg);
+  Logger.log('Xếp hạng tính năng (Q11) — chốt MVP:');
+  q11.forEach((a, i) => Logger.log('   %s. %s: %s', i + 1, a.label, a.avg));
 }

@@ -1,6 +1,6 @@
 # KHẢO SÁT SAFEKID — HƯỚNG DẪN TRIỂN KHAI
 
-Form khảo sát 12 phần · 61 câu · ~8–12 phút · N = 150 phụ huynh
+Form khảo sát 9 phần · 20 câu · ~4–5 phút · N = 150 phụ huynh
 
 ---
 
@@ -13,14 +13,35 @@ survey/
 ├── survey-schema.js        ← NỘI DUNG CÂU HỎI (sửa ở đây)
 ├── survey.js               ← logic render + validate + submit
 ├── verify-schema.js        ← test tính toàn vẹn schema
-├── test-survey.js          ← test end-to-end (48 test)
+├── test-survey.js          ← test end-to-end (39 test)
 └── apps-script/
-    └── Code.gs             ← backend Google Sheets
+    ├── Code.gs             ← backend Google Sheets
+    └── columns.gs          ← 40 cột header (auto-generated)
 ```
 
-## 🔗 BƯỚC 1 — TẠO BACKEND GOOGLE SHEETS
+---
 
-### 1.1. Tạo Sheet
+## 🚀 BƯỚC 1 — CHẠY THỬ LOCAL
+
+```bash
+cd "C:/Users/ntduy/Downloads/SafeKid-Prototype"
+python -m http.server 8787
+```
+
+Mở: **http://127.0.0.1:8787/survey/index.html**
+
+> ⚠️ **Không mở trực tiếp bằng `file://`** — sẽ bị chặn CORS khi submit.
+
+Ở chế độ này form chạy **demo**: dữ liệu lưu vào `localStorage`, không gửi đi đâu.
+
+---
+
+## 🔗 BƯỚC 2 — TẠO BACKEND GOOGLE SHEETS
+
+> 📘 **Hướng dẫn chi tiết từng bấm chuột:** xem file **`HUONG-DAN-APPS-SCRIPT.md`**
+> (có phần xử lý 5 lỗi thường gặp). Dưới đây là bản tóm tắt.
+
+### 2.1. Tạo Sheet
 1. Vào [sheets.new](https://sheets.new) → đặt tên **`SafeKid Survey Data`**
 2. Copy **SPREADSHEET_ID** từ URL:
    ```
@@ -28,22 +49,26 @@ survey/
                                     └─ copy đoạn này ─┘
    ```
 
-### 1.2. Mở Apps Script
+### 2.2. Mở Apps Script
 - Trong Sheet: menu **Extensions → Apps Script**
 - Xoá hết code mẫu
-- Dán toàn bộ nội dung `apps-script/Code.gs`
+- Tạo **2 file** trong Apps Script:
+  - `Code.gs` ← dán từ `apps-script/Code.gs`
+  - `columns.gs` ← dán từ `apps-script/columns.gs` *(bấm ➕ cạnh "Files" → Script → đặt tên `columns`)*
 - Sửa dòng:
   ```javascript
   const SPREADSHEET_ID = '1AbC...XYZ';   // ← dán ID vừa copy
   ```
 
-### 1.3. Tạo header (chạy 1 lần)
+> ⚠️ Thiếu `columns.gs` sẽ báo lỗi `ReferenceError: COLUMNS is not defined`
+
+### 2.3. Tạo header (chạy 1 lần)
 - Trong Apps Script, chọn hàm **`setupSheet`** ở dropdown
 - Bấm **▶ Run**
 - Cấp quyền khi được hỏi (Advanced → Go to project → Allow)
-- Kiểm tra Sheet: đã có 76 cột header tiếng Việt
+- Kiểm tra Sheet: đã có 41 cột header tiếng Việt
 
-### 1.4. Deploy
+### 2.4. Deploy
 - Bấm **Deploy → New deployment**
 - Chọn loại: **Web app**
 - Cấu hình:
@@ -54,15 +79,15 @@ survey/
   | Who has access | **Anyone** |
 - Bấm **Deploy** → copy **Web app URL** (kết thúc bằng `/exec`)
 
-### 1.5. Kiểm tra backend
+### 2.5. Kiểm tra backend
 Dán URL `/exec` vào trình duyệt. Phải thấy:
 ```json
-{"status":"ok","service":"SafeKid Survey Backend","version":"1.0","responses":0,"columns":76}
+{"status":"ok","service":"SafeKid Survey Backend","version":"3.0 (20 câu)","responses":0,"columns":41}
 ```
 
 ---
 
-## ⚙️ BƯỚC 2 — NỐI FORM VỚI BACKEND
+## ⚙️ BƯỚC 3 — NỐI FORM VỚI BACKEND
 
 Mở `survey.js`, sửa dòng đầu:
 ```javascript
@@ -72,7 +97,7 @@ Lưu file → reload form → submit thử 1 lần → kiểm tra Sheet có dòn
 
 ---
 
-## 🌐 BƯỚC 3 — DEPLOY PUBLIC
+## 🌐 BƯỚC 4 — DEPLOY PUBLIC
 
 ### Cách A — GitHub Pages (khuyến nghị)
 1. Tạo repo mới, ví dụ `safekid-survey`
@@ -95,8 +120,8 @@ Lưu file → reload form → submit thử 1 lần → kiểm tra Sheet có dòn
 
 ```bash
 cd survey
-node verify-schema.js    # kiểm tra tính toàn vẹn schema
-node test-survey.js      # 48 test end-to-end
+node verify-schema.js    # kiểm tra tính toàn vẹn schema + độ phủ mục tiêu DBC
+node test-survey.js      # 39 test end-to-end
 ```
 
 Cả hai phải pass hết trước khi deploy.
@@ -112,15 +137,15 @@ Cả hai phải pass hết trước khi deploy.
 ### Biến chính cần phân tích
 | Biến | Ý nghĩa | Dùng cho |
 |---|---|---|
-| `Q52` | Purchase intention (1–5) | **KPI chính** — go/no-go |
-| `Q34` | WTP hardware | Chốt giá Life 1 |
-| `Q39` | Mức phí Premium chấp nhận | Chốt giá subscription |
-| `Q19_*` | 10 tính năng (1–5) | Chốt MVP |
-| `Q29` | Data Wipe quan trọng | Thiết kế quy trình |
-| `Q30` | Passport quan trọng | Passport có phải USP |
-| `Q31` | Chênh lệch giá Life1/Life2 | Chốt giá refurbished |
-| `Q55` | NPS (0–10) | Chỉ số tổng thể |
-| `Q54` | Lý do không mua | Xử lý objection |
+| `Q19` | Purchase intention (1–5) | **KPI chính** — go/no-go |
+| `Q16` | WTP hardware | Chốt giá Life 1 |
+| `Q17` | Mức phí Premium chấp nhận | Chốt giá subscription |
+| `Q11_*` | 8 tính năng (1–5) | Chốt MVP |
+| `Q13_wipe` | Quan trọng của "đã xóa dữ liệu chưa" | **Bằng chứng Data Wipe** |
+| `Q13_repair` | Quan trọng của "lịch sử sửa chữa" | **Bằng chứng Passport** |
+| `Q14` | Chênh lệch giá máy cũ | Chốt giá refurbished |
+| `Q20` | Lý do không mua | Xử lý objection |
+
 
 ---
 

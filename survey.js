@@ -17,6 +17,10 @@ const FLAT = [];              // tất cả câu, theo thứ tự
 const SEC_OF = {};            // questionId -> sectionId
 S.sections.forEach(sec => sec.questions.forEach(q => { FLAT.push(q); SEC_OF[q.id] = sec.id; }));
 
+/* Câu nào là "gate" của một nhánh (có câu khác showIf vào nó) —
+   tự suy ra từ schema để không phải hardcode ID khi đổi câu hỏi */
+const GATE_IDS = new Set(FLAT.filter(q => q.showIf).map(q => q.showIf.q));
+
 const state = {
   idx: 0,                     // index section hiện tại
   answers: {},                // questionId -> value
@@ -267,7 +271,8 @@ function onClick(e) {
     }
 
     clearError($(`#q_${qid}`));
-    if (qid === 'Q15' || qid === 'Q38') refreshBranching();
+    /* tự động phát hiện câu nào là gate của nhánh -> không hardcode ID */
+    if (GATE_IDS.has(qid)) refreshBranching();
     if (qid === 'Q1') refreshScreener();
     return;
   }
@@ -493,5 +498,16 @@ function showDone(payload) {
 /* ══════════════════════════════════════════════════════════
    INIT
    ══════════════════════════════════════════════════════════ */
+function syncMeta() {
+  /* đồng bộ các chip ở header với schema — tránh ghi cứng số phần / thời gian */
+  const timeEl = $('#metaTime');
+  const secEl = $('#metaSections');
+  const lbl = $('#progressLabel');
+  if (timeEl && S.meta.estTime) timeEl.textContent = S.meta.estTime;
+  if (secEl) secEl.textContent = S.sections.length;
+  if (lbl) lbl.textContent = `Phần 1 / ${S.sections.length}`;
+}
+
+syncMeta();
 renderAll();
 console.log(`%cSafeKid Survey v${S.meta.version}`, 'color:#00d4ff;font-weight:700', `— ${FLAT.length} câu, ${S.sections.length} phần${ENDPOINT ? '' : ' (DEMO MODE — chưa kết nối backend)'}`);
