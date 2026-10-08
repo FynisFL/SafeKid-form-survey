@@ -39,9 +39,9 @@ const SURVEY = {
         },
         {
           id: 'Q3', type: 'single', required: true,
-          text: 'Anh/chị hiện sống ở đâu?',
-          options: ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Tỉnh / thành phố khác'],
-          goal: 'Phân khúc địa lý'
+          text: 'Anh/chị là người trực tiếp quyết định mua thiết bị cho bé không?',
+          options: ['Có, tôi là người quyết định', 'Có, tôi cùng người khác quyết định', 'Không'],
+          goal: 'Xác định decision-maker trong gia đình'
         },
         {
           id: 'Q4', type: 'single', required: true,
@@ -81,10 +81,12 @@ const SURVEY = {
           goal: 'Xác định pain ưu tiên → MVP'
         },
         {
-          id: 'Q8', type: 'likert', required: true, scale: LIKERT_5,
-          text: 'Anh/chị lo ngại ở mức nào khi cho con dùng smartphone sớm?',
-          scaleLabels: ['Không lo', 'Rất lo'],
-          goal: 'Kiểm tra giả định "chống smartphone sớm"'
+          id: 'Q8', type: 'checkbox', required: true, max: 3,
+          text: 'Điều gì khiến anh/chị lo ngại khi cho trẻ sử dụng smartphone?',
+          hint: 'Chọn tối đa 3',
+          options: ['Nghiện mạng xã hội', 'Bị bắt nạt trực tuyến', 'Tiếp xúc nội dung xấu', 'Ảnh hưởng tâm lý/ tự ti', 'Ảnh hưởng thể chất (mắt, xương khớp)', 'Mất tập trung học tập', 'Không lo ngại', 'Khác'],
+          exclusiveValues: ['Không lo ngại'],
+          goal: 'Xác định USP — SafeKid là thiết bị liên lạc có kiểm soát, không phải smartphone'
         }
       ]
     },
@@ -151,6 +153,13 @@ const SURVEY = {
             { id: 'passport', label: 'Hộ chiếu thiết bị (xem lịch sử & tình trạng máy)' }
           ],
           goal: 'CÂU QUAN TRỌNG NHẤT — chốt MVP'
+        },
+        {
+          id: 'Q11a', type: 'checkbox', required: true, max: 3,
+          text: 'Nếu chỉ được chọn 3 tính năng quan trọng NHẤT, anh/chị sẽ chọn tính năng nào?',
+          hint: 'Chọn tối đa 3',
+          options: ['Định vị GPS thời gian thực', 'Nút SOS khẩn cấp', 'Vùng an toàn (Safe Zone)', 'Gọi điện 2 chiều giới hạn danh bạ', 'Nhiệm vụ & đổi xu (rèn thói quen)', 'Ứng dụng cho phụ huynh (Parent App)', 'Trợ lý AI hỗ trợ khách hàng', 'Hộ chiếu thiết bị (xem lịch sử & tình trạng máy)'],
+          goal: 'Forced ranking — xác định ưu tiên thực sự của khách hàng'
         }
       ]
     },
@@ -225,9 +234,9 @@ const SURVEY = {
         },
         {
           id: 'Q17', type: 'single', required: true,
-          text: 'Nếu thiết bị cần trả phí hàng tháng cho các tính năng nâng cao (định vị realtime, vùng an toàn, lịch sử vị trí), anh/chị thấy mức nào phù hợp?',
-          options: ['Sẵn sàng, khoảng 49.000đ/tháng', 'Sẵn sàng, từ 79.000đ/tháng trở lên', 'Có thể, nếu dưới 29.000đ/tháng', 'Không sẵn sàng trả phí định kỳ'],
-          goal: 'Premium intention + mức phí (gộp 1 câu)'
+          text: 'Nếu SafeKid có phí dịch vụ cho GPS, realtime, SafeZone, lịch sử vị trí,… mức phí hàng tháng anh/chị chấp nhận?',
+          options: ['Không muốn trả phí', 'Dưới 29.000đ', '29.000 – 59.000đ', '79.000 – 99.000đ', 'Trên 100.000đ nếu tính năng tương xứng'],
+          goal: 'Premium intention + mức phí cụ thể'
         }
       ]
     },
@@ -263,6 +272,7 @@ const SURVEY = {
         },
         {
           id: 'Q20', type: 'checkbox', required: true,
+          showIf: { q: 'Q19', in: ['1', '2'] },
           text: 'Lý do chính khiến anh/chị KHÔNG mua là gì?',
           hint: 'Chọn tất cả phù hợp',
           options: ['Giá cao', 'Chưa cần thiết', 'Lo pin yếu', 'Lo GPS kém chính xác', 'Lo quyền riêng tư', 'Bé còn nhỏ', 'Đã có giải pháp khác', 'Không tin sản phẩm mới', 'Khác'],

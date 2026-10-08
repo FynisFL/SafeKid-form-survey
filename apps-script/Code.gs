@@ -236,25 +236,44 @@ function diagnose() {
  * Dòng thử sẽ được ghi vào Sheet với nhãn [TEST].
  */
 function testDoPost() {
-  const fake = {};
-  COLUMNS.forEach(c => { fake[c] = ''; });
-  fake.timestamp = new Date().toISOString();
-  fake.duration_sec = 0;
-  fake.version = 'TEST';
-  fake.source = '[TEST] chạy từ Apps Script';
-  fake.Q19 = '4';
-  fake.Q13_wipe = '5';
-  fake.Q11_sos = '5';
+  /* Test 1: Q19 = 1 (không mua) → Q20 hiện */
+  const fake1 = {};
+  COLUMNS.forEach(c => { fake1[c] = ''; });
+  fake1.timestamp = new Date().toISOString();
+  fake1.duration_sec = 0;
+  fake1.version = 'TEST';
+  fake1.source = '[TEST] chạy từ Apps Script';
+  fake1.Q19 = '1';
+  fake1.Q20 = 'Giá cao; Chưa cần thiết';
+  fake1.Q13_wipe = '5';
+  fake1.Q11_sos = '5';
 
-  const res = doPost({ postData: { contents: JSON.stringify(fake) } });
-  const out = JSON.parse(res.getContent());
-  Logger.log('Kết quả testDoPost: %s', JSON.stringify(out));
-  if (out.status === 'success') {
-    Logger.log('✅ Backend hoạt động. Đã ghi 1 dòng thử vào Sheet (nhớ xoá dòng đó sau).');
+  const res1 = doPost({ postData: { contents: JSON.stringify(fake1) } });
+  const out1 = JSON.parse(res1.getContent());
+  Logger.log('Test 1 (Q19=1, Q20 hiện): %s', JSON.stringify(out1));
+
+  /* Test 2: Q19 = 4 (mua) → Q20 ẩn */
+  const fake2 = {};
+  COLUMNS.forEach(c => { fake2[c] = ''; });
+  fake2.timestamp = new Date().toISOString();
+  fake2.duration_sec = 0;
+  fake2.version = 'TEST';
+  fake2.source = '[TEST] chạy từ Apps Script';
+  fake2.Q19 = '4';
+  fake2.Q20 = '';
+  fake2.Q13_wipe = '5';
+  fake2.Q11_sos = '5';
+
+  const res2 = doPost({ postData: { contents: JSON.stringify(fake2) } });
+  const out2 = JSON.parse(res2.getContent());
+  Logger.log('Test 2 (Q19=4, Q20 ẩn): %s', JSON.stringify(out2));
+
+  if (out1.status === 'success' && out2.status === 'success') {
+    Logger.log('✅ Backend hoạt động. Đã ghi 2 dòng thử vào Sheet (nhớ xoá dòng đó sau).');
   } else {
-    Logger.log('❌ Backend lỗi: %s', out.message);
+    Logger.log('❌ Backend lỗi: %s / %s', out1.message, out2.message);
   }
-  return out;
+  return { test1: out1, test2: out2 };
 }
 
 /** Xem nhanh thống kê */
